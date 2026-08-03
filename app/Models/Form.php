@@ -23,7 +23,7 @@ class Form extends Model
   ];
 
   protected $casts = [
-    'schema_definition' => 'array',
+    'schema' => 'array',
     'published_at' => 'datetime',
     'status' => FormStatus::class,
   ];
