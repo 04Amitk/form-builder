@@ -2,7 +2,7 @@
 
 # Form Builder
 
-AI-powered dynamic form builder built with Laravel 12, Livewire 3 and Flux UI.
+AI-powered dynamic form builder built with Laravel 11, Livewire 3 and Flux UI.
 
 ## Features
 
@@ -41,7 +41,7 @@ Password: password
 
 # Tech Stack
 
-- Laravel 12
+- Laravel 11
 - PHP 8.3+
 - Livewire 3
 - Flux UI
