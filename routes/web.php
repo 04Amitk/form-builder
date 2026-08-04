@@ -4,6 +4,8 @@ use App\Livewire\Forms\Show;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Forms\Builder;
 use App\Livewire\Forms\Index;
+use App\Livewire\Forms\Import;
+use App\Livewire\Imports\Preview;
 use App\Livewire\Forms\Submissions\Index as SubmissionIndex;
 use App\Livewire\Forms\Submissions\Show as SubmissionShow;
 
@@ -21,6 +23,9 @@ Route::view('profile', 'profile')
 Route::middleware(['auth'])->group(function () {
   Route::get('forms', Index::class)->name('forms.index');
   Route::get('forms/create', Builder::class)->name('forms.create');
+  Route::get('/forms/import', Import::class)->name('forms.import');
+
+  Route::get('/imports/{importRequest}/preview', Preview::class)->name('imports.preview');
 
   Route::prefix('forms/{form:uuid}')->group(function () {
     Route::get('/edit', Builder::class)->name('forms.edit');

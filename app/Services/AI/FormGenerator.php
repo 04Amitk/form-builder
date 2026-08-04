@@ -9,17 +9,6 @@ class FormGenerator
 {
   protected function request(string $prompt, ?array $currentSchema = null): array
   {
-    $model = config('services.gemini.model');
-
-    $url = 'https://generativelanguage.googleapis.com/v1/models/' .
-      $model .
-      ':generateContent';
-    logger()->info('Sending request to Gemini API', [
-      'url' => $url,
-      'prompt' => $prompt,
-      'currentSchema' => $currentSchema,
-    ]);
-
     $start = microtime(true);
     $response = Http::baseUrl('https://generativelanguage.googleapis.com/v1beta')
       ->withQueryParameters([
@@ -137,14 +126,86 @@ class FormGenerator
     return $message;
   }
 
-  //   if ($schema) {
-  //     $message .= "\nCurrent Schema:\n";
-  //     $message .= json_encode($schema, JSON_PRETTY_PRINT);
-  //     $message .= "\n\nModify the schema according to the user's instruction.\n";
-  //   }
+  public function enhance(array $schema): array
+  {
+    $prompt = $this->buildEnhancePrompt($schema);
+    return $this->request($prompt);
+  }
 
-  //   $message .= "\nUser Request:\n{$prompt}";
+  protected function buildEnhancePrompt(array $schema): string
+  {
+    $fieldTypes = collect(config('form-builder.field_types'))
+      ->pluck('type')
+      ->implode(', ');
 
-  //   return $message;
-  // }
+    $fieldSchemas = json_encode(FieldSchema::defaults(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $sampleSchema = json_encode(FieldSchema::sampleSchema(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $currentSchema = json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+    return <<<PROMPT
+      You are an expert form designer.
+
+      A Word or Excel document has already been parsed into a valid form schema.
+
+      Your task is to IMPROVE the schema, NOT recreate it.
+
+      STRICT RULES
+
+      - Attach appropriate title and description to the form if missing.
+      - Return ONLY valid JSON.
+      - Do NOT wrap the response in markdown.
+      - Do NOT include explanations.
+      - Preserve the JSON structure.
+      - Preserve the order of fields.
+      - Preserve all ids.
+      - Preserve all keys.
+      - Preserve all section_id values.
+      - Preserve all labels unless they contain obvious spelling mistakes.
+      - Never remove a field.
+      - Never add a field unless it is absolutely required to complete an existing option list.
+      - Never invent unsupported field types.
+
+      ONLY improve the following:
+
+      - field type
+      - placeholder
+      - help_text
+      - required
+      - validation
+      - options when obvious
+
+      Allowed field types:
+
+      {$fieldTypes}
+
+      Typical mappings:
+
+      - Full Name → text
+      - Email Address → email
+      - Phone Number → phone
+      - Date of Birth → date
+      - Age → number
+      - Resume / CV → file
+      - Gender → radio
+      - Country → dropdown
+      - Skills → checkbox
+      - Rating → rating
+
+      Every field MUST follow one of these schemas exactly.
+
+      Field Schemas:
+
+      {$fieldSchemas}
+
+      Example of a complete valid schema:
+
+      {$sampleSchema}
+
+      Current schema to improve:
+
+      {$currentSchema}
+
+      Return ONLY the improved JSON schema.
+      PROMPT;
+  }
 }

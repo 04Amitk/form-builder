@@ -4,7 +4,10 @@
       <flux:heading size="xl"> Forms </flux:heading>
       <flux:text> Manage your forms </flux:text>
     </div>
-    <flux:button :href="route('forms.create')" wire:navigate variant="primary">New Form</flux:button>
+    <div>
+      <flux:button :href="route('forms.import')" wire:navigate variant="primary">Import Form</flux:button>
+      <flux:button :href="route('forms.create')" wire:navigate variant="primary">New Form</flux:button>
+    </div>
   </div>
 
   <flux:input wire:model.live.debounce.300ms="search" clearable icon="magnifying-glass" placeholder="Search forms..." />
