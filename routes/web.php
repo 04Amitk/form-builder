@@ -4,6 +4,8 @@ use App\Livewire\Forms\Show;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Forms\Builder;
 use App\Livewire\Forms\Index;
+use App\Livewire\Forms\Submissions\Index as SubmissionIndex;
+use App\Livewire\Forms\Submissions\Show as SubmissionShow;
 
 Route::permanentRedirect('/', '/dashboard');
 
@@ -22,6 +24,8 @@ Route::middleware(['auth'])->group(function () {
 
   Route::prefix('forms/{form:uuid}')->group(function () {
     Route::get('/edit', Builder::class)->name('forms.edit');
+    Route::get('/submissions', SubmissionIndex::class)->name('forms.submissions.index');
+    Route::get('/submissions/{submission}', SubmissionShow::class)->name('forms.submissions.show');
   });
 });
 
