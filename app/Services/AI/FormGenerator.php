@@ -64,64 +64,64 @@ class FormGenerator
       ->pluck('type')
       ->implode(', ');
 
-    $sampleSchema = json_encode(FieldSchema::sampleSchema(), JSON_PRETTY_PRINT);
+    $sampleSchema = json_encode(FieldSchema::sampleSchema(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
     $message = <<<PROMPT
-      You are an expert form designer.
+You are an expert form designer.
 
-      Generate a COMPLETE editable JSON form schema.
+Generate a COMPLETE editable JSON form schema.
 
-      Requirements:
+Requirements:
 
-      - Return ONLY valid JSON.
-      - Do NOT return markdown.
-      - Do NOT wrap the JSON inside code blocks.
-      - Use ONLY these field types:
+- Return ONLY valid JSON.
+- Do NOT return markdown.
+- Do NOT wrap the JSON inside code blocks.
+- Use ONLY these field types:
 
-      {$fieldTypes}
+{$fieldTypes}
 
-      For every field:
-      - Choose the most appropriate field type.
-      - Generate a human-friendly label.
-      - Generate a unique snake_case key.
-      - Generate placeholders where appropriate.
-      - Generate help text when useful.
-      - Mark required fields appropriately.
-      - Generate sensible validation rules.
-      - Generate options for dropdown, radio and checkbox fields.
-      - Use sections to organize long forms and assign section id to fields that belong to that section.
-      - Do NOT invent new field types.
-      - Every field must follow the schema shown below.
+For every field:
+- Choose the most appropriate field type.
+- Generate a human-friendly label.
+- Generate a unique snake_case key.
+- Generate placeholders where appropriate.
+- Generate help text when useful.
+- Mark required fields appropriately.
+- Generate sensible validation rules.
+- Generate options for dropdown, radio and checkbox fields.
+- Use sections to organize long forms and assign section id to fields that belong to that section.
+- Do NOT invent new field types.
+- Every field must follow the schema shown below.
 
-      Output Contract:
-      PROMPT;
+Output Contract:
+PROMPT;
 
     $message .= "\n";
-    $message .= json_encode($sampleSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $message .= $sampleSchema;
 
     if ($schema) {
       $message .= "\n\nCurrent Form Schema:\n";
       $message .= json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
       $message .= <<<PROMPT
 
-      Modify ONLY what is requested.
+Modify ONLY what is requested.
 
-      Preserve existing field ids whenever possible.
+Preserve existing field ids whenever possible.
 
-      Do not remove existing fields unless explicitly instructed.
+Do not remove existing fields unless explicitly instructed.
 
-      Return the COMPLETE updated schema.
-      PROMPT;
+Return the COMPLETE updated schema.
+PROMPT;
     }
 
     $message .= <<<PROMPT
 
-      User Request:
+User Request:
 
-      {$prompt}
+{$prompt}
 
-      Return ONLY the JSON object.
-      PROMPT;
+Return ONLY the JSON object.
+PROMPT;
 
     return $message;
   }
@@ -143,69 +143,69 @@ class FormGenerator
     $currentSchema = json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
     return <<<PROMPT
-      You are an expert form designer.
+You are an expert form designer.
 
-      A Word or Excel document has already been parsed into a valid form schema.
+A Word or Excel document has already been parsed into a valid form schema.
 
-      Your task is to IMPROVE the schema, NOT recreate it.
+Your task is to IMPROVE the schema, NOT recreate it.
 
-      STRICT RULES
+STRICT RULES
 
-      - Attach appropriate title and description to the form if missing.
-      - Return ONLY valid JSON.
-      - Do NOT wrap the response in markdown.
-      - Do NOT include explanations.
-      - Preserve the JSON structure.
-      - Preserve the order of fields.
-      - Preserve all ids.
-      - Preserve all keys.
-      - Preserve all section_id values.
-      - Preserve all labels unless they contain obvious spelling mistakes.
-      - Never remove a field.
-      - Never add a field unless it is absolutely required to complete an existing option list.
-      - Never invent unsupported field types.
+- Attach appropriate title and description to the form if missing.
+- Return ONLY valid JSON.
+- Do NOT wrap the response in markdown.
+- Do NOT include explanations.
+- Preserve the JSON structure.
+- Preserve the order of fields.
+- Preserve all ids.
+- Preserve all keys.
+- Preserve all section_id values.
+- Preserve all labels unless they contain obvious spelling mistakes.
+- Never remove a field.
+- Never add a field unless it is absolutely required to complete an existing option list.
+- Never invent unsupported field types.
 
-      ONLY improve the following:
+ONLY improve the following:
 
-      - field type
-      - placeholder
-      - help_text
-      - required
-      - validation
-      - options when obvious
+- field type
+- placeholder
+- help_text
+- required
+- validation
+- options when obvious
 
-      Allowed field types:
+Allowed field types:
 
-      {$fieldTypes}
+{$fieldTypes}
 
-      Typical mappings:
+Typical mappings:
 
-      - Full Name → text
-      - Email Address → email
-      - Phone Number → phone
-      - Date of Birth → date
-      - Age → number
-      - Resume / CV → file
-      - Gender → radio
-      - Country → dropdown
-      - Skills → checkbox
-      - Rating → rating
+- Full Name → text
+- Email Address → email
+- Phone Number → phone
+- Date of Birth → date
+- Age → number
+- Resume / CV → file
+- Gender → radio
+- Country → dropdown
+- Skills → checkbox
+- Rating → rating
 
-      Every field MUST follow one of these schemas exactly.
+Every field MUST follow one of these schemas exactly.
 
-      Field Schemas:
+Field Schemas:
 
-      {$fieldSchemas}
+{$fieldSchemas}
 
-      Example of a complete valid schema:
+Example of a complete valid schema:
 
-      {$sampleSchema}
+{$sampleSchema}
 
-      Current schema to improve:
+Current schema to improve:
 
-      {$currentSchema}
+{$currentSchema}
 
-      Return ONLY the improved JSON schema.
-      PROMPT;
+Return ONLY the improved JSON schema.
+PROMPT;
   }
 }

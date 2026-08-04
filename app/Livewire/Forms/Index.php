@@ -13,6 +13,7 @@ class Index extends Component
   use WithPagination;
 
   public string $search = '';
+  public int $perPage = 10;
 
   public function updatingSearch(): void
   {
@@ -43,7 +44,7 @@ class Index extends Component
         $query->where('name', 'like', '%' . $this->search . '%');
       })
       ->latest()
-      ->paginate(10);
+      ->paginate($this->perPage);
 
     return view('livewire.forms.index', [
       'forms' => $forms,

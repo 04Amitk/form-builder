@@ -12,7 +12,7 @@
 
   <flux:input wire:model.live.debounce.300ms="search" clearable icon="magnifying-glass" placeholder="Search forms..." />
 
-  <flux:table>
+  <flux:table :paginate="$forms">
     <flux:table.columns>
       <flux:table.column>Name</flux:table.column>
       <flux:table.column>Status</flux:table.column>
@@ -20,7 +20,7 @@
       <flux:table.column align="end"> Actions </flux:table.column>
     </flux:table.columns>
 
-    <flux:table.rows :paginate="$forms">
+    <flux:table.rows>
       @forelse($forms as $form)
         <flux:table.row>
           <flux:table.cell> {{ $form->name }} </flux:table.cell>

@@ -1,4 +1,9 @@
-<div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6">
+<div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6" x-on:dragover.prevent
+  x-on:drop.prevent="
+        $wire.addField(
+            event.dataTransfer.getData('field-type')
+        )
+    ">
   @if (empty($schema['fields']))
     <div class="flex h-96 items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 bg-white">
       <div class="text-center">

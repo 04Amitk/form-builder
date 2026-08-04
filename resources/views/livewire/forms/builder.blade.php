@@ -115,3 +115,13 @@
     @include('livewire.forms.builder.properties')
   </div>
 </div>
+
+@script
+  <script>
+    document.addEventListener("dragstart", (e) => {
+      const type = e.target.dataset.type;
+      if (!type) return;
+      e.dataTransfer.setData("field-type", type);
+    });
+  </script>
+@endscript

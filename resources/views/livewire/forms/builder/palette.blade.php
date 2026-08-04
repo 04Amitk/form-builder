@@ -11,8 +11,9 @@
   </div>
 
   <div class="space-y-2 py-2">
-    @foreach ($fieldTypes  as $field)
-      <flux:button class="w-full justify-start" type="button" variant="ghost" wire:click="addField('{{ $field['type'] }}')">
+    @foreach ($fieldTypes as $field)
+      <flux:button class="w-full justify-start" data-type="{{ $field['type'] }}" type="button" variant="ghost"
+        wire:click="addField('{{ $field['type'] }}')" draggable="true">
         <div class="flex items-center gap-3">
           <flux:icon class="size-5 text-zinc-500" :name="$field['icon']" />
 
