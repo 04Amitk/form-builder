@@ -17,7 +17,11 @@
           </div>
 
           <div class="col-span-2">
-            {{ $this->displayValue($field) }}
+            @if ($field['type'] == 'file')
+              {{ \Storage::disk('public')->url($this->displayValue($field)) }}
+            @else
+              {{ $this->displayValue($field) }}
+            @endif
           </div>
         </div>
       @endforeach

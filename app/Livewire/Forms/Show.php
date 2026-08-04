@@ -7,9 +7,12 @@ use App\Models\Submission;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class Show extends Component
 {
+  use WithFileUploads;
   public Form $form;
   public array $values = [];
 
@@ -35,7 +38,7 @@ class Show extends Component
     $rules = [];
 
     foreach ($this->form->schema['fields'] as $field) {
-      if (!isset($field['key'])) {
+      if (!isset($field['key']) || in_array($field['type'], ['section', 'heading'])) {
         continue;
       }
 
@@ -91,7 +94,8 @@ class Show extends Component
           $fieldRules[] = Rule::in($options);
           break;
         case 'checkbox':
-          $fieldRules[] = ['array', 'array.*' => Rule::in($options)];
+          $fieldRules[] = 'array';
+          $rules['values.' . $field['key'] . '.*'] = Rule::in($options);
           break;
         case 'file':
           $fieldRules[] = 'file';
@@ -121,7 +125,7 @@ class Show extends Component
   {
     $attributes = [];
     foreach ($this->form->schema['fields'] as $field) {
-      if (!isset($field['key'])) {
+      if (!isset($field['key']) || in_array($field['type'], ['section', 'heading'])) {
         continue;
       }
       $attributes['values.' . $field['key']] = $field['label'];
@@ -163,6 +167,13 @@ class Show extends Component
   public function submit(): void
   {
     $validated = $this->validate();
+
+    foreach ($validated['values'] as $key => $value) {
+      if ($value instanceof TemporaryUploadedFile) {
+        $filePath = $value->store('uploads', 'public');
+        $validated['values'][$key] = $filePath;
+      }
+    }
 
     Submission::create([
       'form_id' => $this->form->id,

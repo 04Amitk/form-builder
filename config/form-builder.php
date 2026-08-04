@@ -57,11 +57,11 @@ return [
       'label' => 'File Upload',
       'icon' => 'paper-clip',
     ],
-    [
-      'type' => 'heading',
-      'label' => 'Heading',
-      'icon' => 'h1',
-    ],
+    // [
+    //   'type' => 'heading',
+    //   'label' => 'Heading',
+    //   'icon' => 'h1',
+    // ],
     [
       'type' => 'rating',
       'label' => 'Rating',

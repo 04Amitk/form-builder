@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\Form;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Storage;
 
 class FormSubmissionsExport implements FromArray
 {
@@ -43,6 +44,10 @@ class FormSubmissionsExport implements FromArray
         $value = $submission->answers[$field['key']] ?? '';
         if (is_array($value)) {
           $value = implode(', ', $value);
+        }
+
+        if ($field['type'] == 'file') {
+          $value = Storage::disk('public')->url($value);
         }
         $row[] = $value;
       }

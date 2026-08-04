@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\AIGenerationStatus;
 use App\Enums\FormStatus;
 use App\Models\Form;
 use Flux\Flux;
@@ -10,6 +11,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Attributes\On;
+use App\Jobs\GenerateFormSchema;
+use App\Models\AIRequest;
 
 class Builder extends Component
 {
@@ -26,6 +29,9 @@ class Builder extends Component
   public array $editingField = [];
   public string $schemaJson = '';
   public string $viewMode = 'canvas';
+  public string $prompt = '';
+  public ?array $generatedSchema = null;
+  public ?int $aiRequestId = null;
 
   public function mount(?Form $form = null): void
   {
@@ -91,12 +97,12 @@ class Builder extends Component
         'label' => 'New Section',
         'description' => '',
       ],
-      'heading' => [
-        'id' => (string) Str::uuid(),
-        'type' => 'heading',
-        'text' => 'Heading',
-        'level' => 2,
-      ],
+      // 'heading' => [
+      //   'id' => (string) Str::uuid(),
+      //   'type' => 'heading',
+      //   'text' => 'Heading',
+      //   'level' => 2,
+      // ],
       'text' => [
         'id' => (string) Str::uuid(),
         'type' => 'text',
@@ -315,7 +321,7 @@ class Builder extends Component
         'slug' => Str::slug($this->name),
         'description' => $this->description,
         'schema' => $this->schema,
-        'status' => FormStatus::Draft,
+        'status' => FormStatus::Published,
         'created_by' => auth()->id(),
       ]);
 
@@ -390,6 +396,110 @@ class Builder extends Component
     }
 
     $this->schema = $decoded;
+  }
+
+  public function generate(): void
+  {
+    $this->validate([
+      'prompt' => ['required', 'string'],
+    ]);
+
+    $request = AIRequest::create([
+      'form_id' => $this->form?->id,
+      'operation' => $this->form ? 'edit' : 'generate',
+      'prompt' => $this->prompt,
+      'input_schema' => $this->form?->schema ?? null,
+      'provider' => 'gemini',
+      'model' => config('services.gemini.model'),
+      'status' => AIGenerationStatus::Pending,
+    ]);
+
+    GenerateFormSchema::dispatch($request);
+    $this->aiRequestId = $request->id;
+
+    Flux::toast(
+      heading: 'Generation started',
+      text: 'Your request has been queued.',
+      variant: 'success',
+    );
+  }
+
+  public function applyGeneratedSchema(): void
+  {
+    if (!$this->generatedSchema) {
+      return;
+    }
+
+    $this->schema = $this->generatedSchema;
+    $this->name = $this->schema['title'] ?? $this->name;
+    $this->description = $this->schema['description'] ?? $this->description;
+    $this->syncSchemaJson();
+    $this->generatedSchema = null;
+    $this->selectedField = null;
+    $this->editingField = [];
+
+    Flux::toast(
+      heading: 'Schema applied',
+      text: 'The generated schema has been loaded.',
+      variant: 'success',
+    );
+  }
+
+  public function discardGeneratedSchema(): void
+  {
+    $this->generatedSchema = null;
+
+    Flux::toast(
+      heading: 'Discarded',
+      text: 'Generated schema was discarded.',
+      variant: 'warning',
+    );
+  }
+
+  public function refreshAIRequest(): void
+  {
+    if (!$this->aiRequestId) {
+      return;
+    }
+
+    $request = AIRequest::find($this->aiRequestId);
+    if (!$request) {
+      return;
+    }
+
+    if ($request->status === AIGenerationStatus::Completed) {
+      $this->generatedSchema = $request->response;
+      $this->name = $this->generatedSchema['title'] ?? $this->name;
+      $this->description = $this->generatedSchema['description'] ?? $this->description;
+      $this->aiRequestId = null;
+
+      Flux::toast(
+        heading: 'AI generation completed',
+        text: 'Review the generated schema and apply it.',
+        variant: 'success',
+      );
+
+      return;
+    }
+
+    if ($request->status === AIGenerationStatus::Failed) {
+      $this->aiRequestId = null;
+      Flux::toast(
+        heading: 'Generation failed',
+        text: $request->error ?? 'Unable to generate form.',
+        variant: 'danger',
+      );
+    }
+  }
+
+  #[Computed]
+  public function aiRequest(): ?AIRequest
+  {
+    if (!$this->aiRequestId) {
+      return null;
+    }
+
+    return AIRequest::find($this->aiRequestId);
   }
 
   #[Computed()]

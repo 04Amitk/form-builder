@@ -13,10 +13,12 @@ return new class extends Migration {
       $table->timestamps();
       $table->foreignId('form_id')->nullable()->constrained()->nullOnDelete();
       $table->longText('prompt');
+      $table->json('input_schema')->nullable();
       $table->string('operation');
       $table->string('provider');
       $table->string('model');
       $table->string('status')->default(AIGenerationStatus::Pending->value);
+      $table->unsignedInteger('attempt')->default(1);
       $table->unsignedInteger('input_tokens')->default(0);
       $table->unsignedInteger('output_tokens')->default(0);
       $table->unsignedInteger('total_tokens')->default(0);

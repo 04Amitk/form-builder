@@ -9,7 +9,9 @@
     </flux:description>
   @endif
 
-  @foreach ($field['options'] ?? [] as $option)
-    <flux:radio wire:model="values.{{ $field['key'] }}" :value="$option['value']" :label="$option['label']" />
-  @endforeach
+  <flux:radio.group wire:model="values.{{ $field['key'] }}">
+    @foreach ($field['options'] ?? [] as $option)
+      <flux:radio :value="$option['value']" :label="$option['label']" />
+    @endforeach
+  </flux:radio.group>
 </div>
