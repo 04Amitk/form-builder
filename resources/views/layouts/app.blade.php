@@ -19,8 +19,10 @@
 </head>
 
 <body class="font-sans antialiased">
-  <div class="max-h-screen bg-gray-100 dark:bg-gray-900">
-    <livewire:layout.navigation />
+  <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+    @if (!($hideHeader ?? false))
+      <livewire:layout.navigation />
+    @endif
 
     <!-- Page Heading -->
     @if (isset($header))
@@ -32,7 +34,7 @@
     @endif
 
     <!-- Page Content -->
-    <main class="m-4 mb-0!">
+    <main class="p-4">
       {{ $slot }}
     </main>
 

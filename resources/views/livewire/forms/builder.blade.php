@@ -19,6 +19,15 @@
           </flux:button>
         </flux:button.group>
       </div>
+
+      @if ($form)
+        <div class="flex flex-wrap items-end gap-4">
+          <flux:field class="flex-1">
+            <flux:input label="Public URL" :value="route('forms.show', $form)" readonly />
+          </flux:field>
+          <flux:button :href="route('forms.show', $form)" target="_blank">Open</flux:button>
+        </div>
+      @endif
     </flux:card>
 
     @if ($viewMode === 'canvas')
